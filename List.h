@@ -6,6 +6,11 @@
 
 #include <memory>
 
+// !!!NOTE!!!
+// This version seems to work fine on small-sized lists, but on big ones it fails with stack overflow,
+// presumably due to extremely big chain of unique_ptr destructor calls.
+// Also some features are still not implemented
+
 //
 // DECLARATIONS
 //
@@ -56,14 +61,24 @@ class List {
   template <bool IsConst>
   class UnitedIterator;
 
-  class Node;
+  struct Node;
+  struct NodeBase;
 
   void CopyFromOther(const List& other);
+  void MoveFromOther(List& other);
+  template <typename... Args_t>
+  void InsertToEmpty(Args_t&& ...args);
+
+  static Node* AsNode(NodeBase* node_base);
+
+  void PrintStatus() const; // DEBUG
 
   // List is double-linked, owning of objects is performed as "previous owns next" and first_ owns first node, which is
   // not containing a real value, needed for technical reasons (to differ begin and end iterators)
-  std::unique_ptr<Node> first_ = nullptr;
-  Node* last_ = nullptr;
+  // std::unique_ptr<Node> first_ = nullptr;
+  // Node* last_ = nullptr;
+
+  std::unique_ptr<NodeBase> end_ = std::make_unique<NodeBase>();
   size_t length_ = 0;
 
  public:
@@ -97,10 +112,15 @@ class List {
 };
 
 template <typename T>
-struct List<T>::Node {
-  std::unique_ptr<Node> next;
-  Node* prev;
+struct List<T>::NodeBase {
+  NodeBase* next = this;
+  std::unique_ptr<Node> prev = nullptr;
 
+  NodeBase();
+};
+
+template <typename T>
+struct List<T>::Node : public NodeBase {
   T value;
 
   explicit Node(const T& value); // WHY DO I NEED THAT???
@@ -113,7 +133,7 @@ template <typename T>
 template <bool IsConst>
 class List<T>::UnitedIterator {
  public:
-  UnitedIterator(Node* node);
+  UnitedIterator(NodeBase* node);
 
   UnitedIterator operator++(int);
   UnitedIterator operator--(int);
@@ -136,7 +156,7 @@ class List<T>::UnitedIterator {
   bool operator!=(const UnitedIterator<IsConstOther>& other);
 
  private:
-  Node* current_node_;
+  NodeBase* current_node_;
 
   friend class List<T>; ///////FUFUFUFUFUFFFFFUFU
 };
