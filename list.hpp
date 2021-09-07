@@ -7,36 +7,49 @@
 #include <memory>
 
 // !!!NOTE!!!
-// This version seems to work fine on small-sized lists, but on big ones it fails with stack overflow,
-// presumably due to extremely big chain of unique_ptr destructor calls.
-// Also some features are still not implemented
+// This is not final version
+// TODO: add documentation
+// TODO: finish with questions in comments
+// TODO: test weird allocator cases
 
 //
 // DECLARATIONS
 //
 
-template <typename T>
+// ORGANIZE PUBLIC-PRIVATE
+// NODE BASE does not depend on allocator
+// exceptions?
+
+template <typename T, typename Allocator = std::allocator<T>>
 class List {
  public:
+  // Not so good - I don't use it
+  // how many should i have?
   using value_type = T;
+  using reference = T&;
+  using const_reference = const T&;
+  using size_type = size_t;
 
   List();
   List(const List& other);
-  List(List&& other) noexcept;
-  List(size_t count, const T& value);
-  explicit List(size_t count);
+  List(List&& other) noexcept(noexcept(MoveFromOther(std::move(other)))
+      && std::is_nothrow_move_constructible_v<NodeAllocator>);
+  explicit List(size_t count, const T& value = T(), const Allocator& alloc = Allocator());
 
-  ~List();
+  ~List() noexcept;
 
   List& operator=(const List& other);
-  List& operator=(List&& other) noexcept;
+  List& operator=(List&& other) noexcept(noexcept(MoveFromOther(std::move(other))));
 
   size_t size() const;
 
-  T& front() const;
-  T& back() const;
+  const T& front() const;
+  const T& back() const;
 
-  void clear();
+  T& front();
+  T& back();
+
+  void clear() noexcept;
   bool empty() const;
 
   template <typename... Args_t>
@@ -56,8 +69,10 @@ class List {
   void reverse();
   void unique();
 
+  void Print() const;
+
  private:
-  // To avoid copying, iterator is template class
+  // To avoid copy-pasting code for const and not const versions, iterator is template class
   template <bool IsConst>
   class UnitedIterator;
 
@@ -65,20 +80,22 @@ class List {
   struct NodeBase;
 
   void CopyFromOther(const List& other);
-  void MoveFromOther(List& other);
+  void MoveFromOther(List&& other) noexcept(std::is_nothrow_move_assignable_v<NodeAllocator>);
   template <typename... Args_t>
   void InsertToEmpty(Args_t&& ...args);
+  void CopyPartOfCommonSize(NodeBase*& this_pointer, NodeBase*& other_pointer, const List<T, Allocator>& other);
+  void CopyNewNodes(NodeBase*& this_pointer, NodeBase*& other_pointer, const List<T, Allocator>& other);
+  void DeleteRedundantNodes(NodeBase*& this_pointer, size_t count);
 
-  static Node* AsNode(NodeBase* node_base);
+  static Node* AsNode(NodeBase* node_base); // node's method?
 
-  void PrintStatus() const; // DEBUG
+  void CheckStatus();
 
-  // List is double-linked, owning of objects is performed as "previous owns next" and first_ owns first node, which is
-  // not containing a real value, needed for technical reasons (to differ begin and end iterators)
-  // std::unique_ptr<Node> first_ = nullptr;
-  // Node* last_ = nullptr;
+  using NodeAllocator = typename std::allocator_traits<Allocator>::template rebind_alloc<Node>;
+  using NodeAllocatorTraits = std::allocator_traits<NodeAllocator>;
 
-  std::unique_ptr<NodeBase> end_ = std::make_unique<NodeBase>();
+  NodeBase end_;
+  NodeAllocator alloc_;
   size_t length_ = 0;
 
  public:
@@ -86,12 +103,25 @@ class List {
   using iterator = UnitedIterator<false>;
   using reverse_iterator = std::reverse_iterator<UnitedIterator<false>>;
   using const_reverse_iterator = std::reverse_iterator<UnitedIterator<true>>;
+  using difference_type = typename iterator::difference_type;
 
-  iterator begin() const;
-  iterator end() const;
+  iterator begin();
+  iterator end();
+
+  const_iterator begin() const;
+  const_iterator end() const;
 
   const_iterator cbegin() const;
   const_iterator cend() const;
+
+  reverse_iterator rbegin();
+  reverse_iterator rend();
+
+  const_reverse_iterator rbegin() const;
+  const_reverse_iterator rend() const;
+
+  const_reverse_iterator crbegin() const;
+  const_reverse_iterator crend() const;
 
   template <bool IsConst, typename... Args_t>
   void emplace(UnitedIterator<IsConst> pos, Args_t&& ...args);
@@ -107,33 +137,29 @@ class List {
 
   template <bool IsConst>
   UnitedIterator<IsConst> insert(List::UnitedIterator<IsConst> pos, T&& value);
-
-  // reverse iterator???
 };
 
-template <typename T>
-struct List<T>::NodeBase {
+template <typename T, typename Allocator>
+struct List<T, Allocator>::NodeBase {
   NodeBase* next = this;
-  std::unique_ptr<Node> prev = nullptr;
+  NodeBase* prev = this;
 
   NodeBase();
 };
 
-template <typename T>
-struct List<T>::Node : public NodeBase {
+template <typename T, typename Allocator>
+struct List<T, Allocator>::Node : public NodeBase {
   T value;
 
-  explicit Node(const T& value); // WHY DO I NEED THAT???
-  explicit Node(T&& value);
   template <typename... Args_t>
-  explicit Node(Args_t&& ... args);
+  explicit Node(Args_t&& ...args);
 };
 
-template <typename T>
+template <typename T, typename Allocator>
 template <bool IsConst>
-class List<T>::UnitedIterator {
+class List<T, Allocator>::UnitedIterator {
  public:
-  UnitedIterator(NodeBase* node);
+  explicit UnitedIterator(NodeBase* node);
 
   UnitedIterator operator++(int);
   UnitedIterator operator--(int);
@@ -158,7 +184,7 @@ class List<T>::UnitedIterator {
  private:
   NodeBase* current_node_;
 
-  friend class List<T>; ///////FUFUFUFUFUFFFFFUFU
+  friend class List<T>;
 };
 
-#include "List.ipp"
+#include "list.ipp"
