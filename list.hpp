@@ -1,30 +1,37 @@
 //
-// Created by Timur Demchenko on 28.08.2020.
+// Created by Timur Demchenko (https://github.com/timur3v) on 28.08.2020.
 //
+
+// Class List implements a double-linked list.
+
+// Template parameter T is type of values stored in list. To use T in a container it must be move-constructable and
+// move-assignable. For some operations, like copying a list, T must be copy-assignable and copy-constructable.
+// Allocator is an allocator type for T. It must meet the named requirements of Allocator and the line
+// std::allocator_traits<Allocator>::rebind_alloc<Node> should compile (class Node is declared beyond in this file).
+
+// Public functions in snake_case, constructors and destructor do the same as ones with same signature of std::list.
+// Other functions are documented in list.ipp.
+
+// All the requirements and references to standard library are relevant for C++17, which is optimal to compile this file.
+
+// List contains nodes, which are inherited from NodeBase class. List itself owns only one NodeBase called "end_"
+// which does not carry a value. All other nodes carry a value, end_.next points to the front node, end_.prev to the
+// back one.
+
 
 #pragma once
 
 #include <memory>
 
-// !!!NOTE!!!
-// This is not final version
-// TODO: add documentation
-// TODO: finish with questions in comments
-// TODO: test weird allocator cases
-
 //
 // DECLARATIONS
 //
 
-// ORGANIZE PUBLIC-PRIVATE
-// NODE BASE does not depend on allocator
-// exceptions?
+// NODE BASE does not depend on allocator???
 
 template <typename T, typename Allocator = std::allocator<T>>
 class List {
  public:
-  // Not so good - I don't use it
-  // how many should i have?
   using value_type = T;
   using reference = T&;
   using const_reference = const T&;
@@ -35,6 +42,7 @@ class List {
   List(List&& other) noexcept(noexcept(MoveFromOther(std::move(other)))
       && std::is_nothrow_move_constructible_v<NodeAllocator>);
   explicit List(size_t count, const T& value = T(), const Allocator& alloc = Allocator());
+  explicit List(const Allocator& alloc);
 
   ~List() noexcept;
 
@@ -169,7 +177,7 @@ class List<T, Allocator>::UnitedIterator {
 
   using pointer = std::conditional_t<IsConst, const T*, T*>;
   using reference = std::conditional_t<IsConst, const T&, T&>;
-  using difference_type = int;
+  using difference_type = std::ptrdiff_t;
   using iterator_category = std::bidirectional_iterator_tag;
   using value_type = T;
 

@@ -1,14 +1,22 @@
 //
-// Created by Timur Demchenko on 28.08.2020.
+// Created by Timur Demchenko (https://github.com/timur3v) on 28.08.2020.
 //
+
+// This is a .ipp file for list.hpp. For more information check list.hpp.
 
 //
 // CLASS NODE
 //
 
+/**
+ * Default constructor.
+ */
 template <typename T, typename Allocator>
 List<T, Allocator>::NodeBase::NodeBase() {}
 
+/**
+ * Constructor, that constructs value in node from args.
+ */
 template <typename T, typename Allocator>
 template <typename... Args_t>
 List<T, Allocator>::Node::Node(Args_t&& ...args) : value(std::forward<Args_t>(args)...) {
@@ -38,6 +46,9 @@ List<T, Allocator>::List(List&& other) noexcept(noexcept(MoveFromOther(std::move
     && std::is_nothrow_move_constructible_v<NodeAllocator>) : alloc_(std::move(other.alloc_)) {
   MoveFromOther(std::move(other));
 }
+
+template <typename T, typename Allocator>
+List<T, Allocator>::List(const Allocator& alloc) : alloc_(NodeAllocator(alloc)) {}
 
 //
 // LIST ASSIGNMENT OPERATORS
@@ -86,6 +97,10 @@ void List<T, Allocator>::push_back(T&& value) {
   emplace_back(std::move(value));
 }
 
+/**
+ * Makes this a copy of other. May throw exceptions, for example, when allocating memory. Values of type T are copied
+ * here.
+ */
 template <typename T, typename Allocator>
 void List<T, Allocator>::CopyFromOther(const List<T, Allocator>& other) {
   NodeBase* other_pointer = other.end_.prev;
@@ -138,7 +153,7 @@ void List<T, Allocator>::CopyNewNodes(NodeBase*& this_pointer,
 }
 
 /**
- * Deletes count nodes, starting from this_pointer->prev and going to the "prev" side
+ * Deletes count nodes, starting from this_pointer->prev and going to the "prev" side.
  */
 template <typename T, typename Allocator>
 void List<T, Allocator>::DeleteRedundantNodes(NodeBase*& this_pointer, size_t count) {
@@ -153,6 +168,10 @@ void List<T, Allocator>::DeleteRedundantNodes(NodeBase*& this_pointer, size_t co
   }
 }
 
+/**
+ * Moves other into this. After usage other is an empty working list, if allocator is fine after moving. Otherwise,
+ * other is not valid.
+ */
 template <typename T, typename Allocator>
 void List<T, Allocator>::MoveFromOther(List&& other) noexcept(std::is_nothrow_move_assignable_v<NodeAllocator>) {
   if (&other == this) {
@@ -220,6 +239,9 @@ void List<T, Allocator>::clear() noexcept {
   length_ = 0;
 }
 
+/**
+ * Inserts node, constructed from args, to an empty list. If list is not empty, behaviour is undefined.
+ */
 template <typename T, typename Allocator>
 template <typename... Args_t>
 void List<T, Allocator>::InsertToEmpty(Args_t&& ...args) {
@@ -306,6 +328,9 @@ void List<T, Allocator>::push_front(T&& value) {
 // ITERATOR CLASS
 //
 
+/**
+ * Increments iterator. Returns reference to itself after incrementing.
+ */
 template <typename T, typename Allocator>
 template <bool IsConst>
 typename List<T, Allocator>::template UnitedIterator<IsConst>& List<T,
@@ -314,6 +339,9 @@ typename List<T, Allocator>::template UnitedIterator<IsConst>& List<T,
   return *this;
 }
 
+/**
+ * Decrements iterator. Returns reference to itself after decrementing.
+ */
 template <typename T, typename Allocator>
 template <bool IsConst>
 typename List<T, Allocator>::template UnitedIterator<IsConst>& List<T,
@@ -322,6 +350,9 @@ typename List<T, Allocator>::template UnitedIterator<IsConst>& List<T,
   return *this;
 }
 
+/**
+ * Increments iterator. Returns copy of itself before incrementing.
+ */
 template <typename T, typename Allocator>
 template <bool IsConst>
 typename List<T, Allocator>::template UnitedIterator<IsConst> List<T, Allocator>::UnitedIterator<IsConst>::operator++(
@@ -331,6 +362,9 @@ typename List<T, Allocator>::template UnitedIterator<IsConst> List<T, Allocator>
   return copy;
 }
 
+/**
+ * Decrements iterator. Returns copy of itself before decrementing.
+ */
 template <typename T, typename Allocator>
 template <bool IsConst>
 typename List<T, Allocator>::template UnitedIterator<IsConst> List<T, Allocator>::UnitedIterator<IsConst>::operator--(
@@ -340,10 +374,16 @@ typename List<T, Allocator>::template UnitedIterator<IsConst> List<T, Allocator>
   return copy;
 }
 
+/**
+ * Constructs iterator from node.
+ */
 template <typename T, typename Allocator>
 template <bool IsConst>
 List<T, Allocator>::UnitedIterator<IsConst>::UnitedIterator(NodeBase* node) : current_node_(node) {}
 
+/**
+ * Returns reference to a value in iterator. Reference is const when iterator is const, and not const otherwise.
+ */
 template <typename T, typename Allocator>
 template <bool IsConst>
 typename List<T, Allocator>::template UnitedIterator<IsConst>::reference List<T,
@@ -351,6 +391,9 @@ typename List<T, Allocator>::template UnitedIterator<IsConst>::reference List<T,
   return AsNode(current_node_)->value;
 }
 
+/**
+ * Returns pointer to a value in iterator. Pointer is const when iterator is const, and not const otherwise.
+ */
 template <typename T, typename Allocator>
 template <bool IsConst>
 typename List<T, Allocator>::template UnitedIterator<IsConst>::pointer List<T,
@@ -358,6 +401,9 @@ typename List<T, Allocator>::template UnitedIterator<IsConst>::pointer List<T,
   return &AsNode(current_node_)->value;
 }
 
+/**
+ * Returns true if iterators point at the same node, false otherwise.
+ */
 template <typename T, typename Allocator>
 template <bool IsConst>
 template <bool IsConstOther>
@@ -365,6 +411,9 @@ bool List<T, Allocator>::UnitedIterator<IsConst>::operator==(const UnitedIterato
   return current_node_ == other.current_node_;
 }
 
+/**
+ * Returns false if iterators point at the same node, true otherwise.
+ */
 template <typename T, typename Allocator>
 template <bool IsConst>
 template <bool IsConstOther>
@@ -446,7 +495,7 @@ typename List<T, Allocator>::const_reverse_iterator List<T, Allocator>::rend() c
 
 template <typename T, typename Allocator>
 template <bool IsConst, typename... Args_t>
-void List<T, Allocator>::emplace(List::UnitedIterator<IsConst> pos, Args_t&& ... args) {
+void List<T, Allocator>::emplace(List::UnitedIterator<IsConst> pos, Args_t&& ...args) {
   if (pos == begin()) {
     emplace_front(std::forward<Args_t>(args)...);
   } else if (pos == end()) {
@@ -504,7 +553,7 @@ template <bool IsConst, bool IsConstOther>
 typename List<T, Allocator>::template UnitedIterator<IsConst> List<T,
                                                                    Allocator>::erase(List::UnitedIterator<IsConst> first,
                                                                                      List::UnitedIterator<IsConstOther> last) {
-  for (auto it = first; it != last;) { // Not really optimal, but who cares
+  for (auto it = first; it != last;) {
     it = erase(it);
   }
   return last;
@@ -514,6 +563,9 @@ typename List<T, Allocator>::template UnitedIterator<IsConst> List<T,
 // OTHER LIST FUNCTIONS
 //
 
+/**
+ * Prints length and values in order they are in list.
+ */
 template <typename T, typename Allocator>
 void List<T, Allocator>::Print() const {
   std::cout << "length: " << length_ << "\n";
@@ -532,6 +584,9 @@ void List<T, Allocator>::Print() const {
   std::cout << std::endl;
 }
 
+/**
+ * Checks if list is not "broken".
+ */
 template <typename T, typename Allocator>
 void List<T, Allocator>::CheckStatus() {
   int counter = 0;
@@ -549,6 +604,9 @@ void List<T, Allocator>::CheckStatus() {
   assert(counter == length_);
 }
 
+/**
+ * Unsafe cast from base class pointer NodeBase* to derived Node*.
+ */
 template <typename T, typename Allocator>
 typename List<T, Allocator>::Node* List<T, Allocator>::AsNode(NodeBase* node_base) {
   return static_cast<Node*>(node_base);
@@ -579,6 +637,7 @@ void List<T, Allocator>::reverse() {
 
 template <typename T, typename Allocator>
 void List<T, Allocator>::unique() {
+  // goes from back to front, leaving only closest to back element in a group of adjacent equal elements
   if (empty()) {
     return;
   }
