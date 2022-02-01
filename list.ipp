@@ -5,30 +5,34 @@
 // This is a .ipp file for list.hpp. For more information check list.hpp.
 
 //
-// CLASS NODE
+// LIST CONSTRUCTORS
 //
 
 /**
- * Default constructor.
+ * Default constructor
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
  */
 template <typename T, typename Allocator>
 List<T, Allocator>::NodeBase::NodeBase() {}
 
 /**
  * Constructor, that constructs value in node from args.
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
  */
 template <typename T, typename Allocator>
 template <typename... Args_t>
 List<T, Allocator>::Node::Node(Args_t&& ...args) : value(std::forward<Args_t>(args)...) {
 }
 
-//
-// LIST CONSTRUCTORS
-//
-
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 List<T, Allocator>::List() : alloc_(NodeAllocator()) {}
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 List<T, Allocator>::List(size_t count, const T& value, const Allocator& alloc) : alloc_(NodeAllocator(alloc)) {
   for (size_t i = 0; i < count; ++i) {
@@ -36,17 +40,26 @@ List<T, Allocator>::List(size_t count, const T& value, const Allocator& alloc) :
   }
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 List<T, Allocator>::List(const List& other) : alloc_(other.alloc_) {
   CopyFromOther(other);
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 List<T, Allocator>::List(List&& other) noexcept(noexcept(MoveFromOther(std::move(other)))
     && std::is_nothrow_move_constructible_v<NodeAllocator>) : alloc_(std::move(other.alloc_)) {
   MoveFromOther(std::move(other));
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 List<T, Allocator>::List(const Allocator& alloc) : alloc_(NodeAllocator(alloc)) {}
 
@@ -54,6 +67,9 @@ List<T, Allocator>::List(const Allocator& alloc) : alloc_(NodeAllocator(alloc)) 
 // LIST ASSIGNMENT OPERATORS
 //
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 List<T, Allocator>& List<T, Allocator>::operator=(const List& other) {
   if (&other == this) {
@@ -64,6 +80,9 @@ List<T, Allocator>& List<T, Allocator>::operator=(const List& other) {
   return *this;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 List<T, Allocator>& List<T, Allocator>::operator=(List&& other) noexcept(noexcept(MoveFromOther(std::move(other)))) {
   if (&other == this) {
@@ -78,6 +97,9 @@ List<T, Allocator>& List<T, Allocator>::operator=(List&& other) noexcept(noexcep
 // LIST DESTRUCTOR
 //
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 List<T, Allocator>::~List() noexcept {
   clear();
@@ -87,11 +109,17 @@ List<T, Allocator>::~List() noexcept {
 // LIST FUNCTIONS
 //
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 void List<T, Allocator>::push_back(const T& value) {
   emplace_back(value);
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 void List<T, Allocator>::push_back(T&& value) {
   emplace_back(std::move(value));
@@ -100,7 +128,11 @@ void List<T, Allocator>::push_back(T&& value) {
 /**
  * Makes this a copy of other. May throw exceptions, for example, when allocating memory. Values of type T are copied
  * here.
- */
+ *
+ * @tparam T Type of elements in container
+ * @tparam Allocator Allocator type
+ * @param other List to be copied from
+*/
 template <typename T, typename Allocator>
 void List<T, Allocator>::CopyFromOther(const List<T, Allocator>& other) {
   NodeBase* other_pointer = other.end_.prev;
@@ -121,6 +153,12 @@ void List<T, Allocator>::CopyFromOther(const List<T, Allocator>& other) {
 /**
  * Copies part of other list to this. Starts from the end of other, copies min(other.length_, length_) elements.
  * Changes this_pointer and other_pointer, at the end they point at the last copied nodes.
+ *
+ * @tparam T Type of elements in container
+ * @tparam Allocator Allocator type
+ * @param this_pointer Pointer to position in this class
+ * @param other_pointer Pointer to position in other class
+ * @param other List to be copied from
  */
 template <typename T, typename Allocator>
 void List<T, Allocator>::CopyPartOfCommonSize(NodeBase*& this_pointer,
@@ -138,6 +176,12 @@ void List<T, Allocator>::CopyPartOfCommonSize(NodeBase*& this_pointer,
  * Creates other.length - length nodes, which are copies of first other.length - length nodes of other.
  * Initially this_pointer and other_pointer must be pointers to nodes, where to start copying. At the end they point
  * to last copied nodes.
+ *
+ * @tparam T Type of elements in container
+ * @tparam Allocator Allocator type
+ * @param this_pointer Pointer to position in this class
+ * @param other_pointer Pointer to position in other class
+ * @param other List to be copied from
  */
 template <typename T, typename Allocator>
 void List<T, Allocator>::CopyNewNodes(NodeBase*& this_pointer,
@@ -154,6 +198,11 @@ void List<T, Allocator>::CopyNewNodes(NodeBase*& this_pointer,
 
 /**
  * Deletes count nodes, starting from this_pointer->prev and going to the "prev" side.
+ *
+ * @tparam T Type of elements in container
+ * @tparam Allocator Allocator type
+ * @param this_pointer Pointer to position in this class
+ * @param count Number of elements to be deleted
  */
 template <typename T, typename Allocator>
 void List<T, Allocator>::DeleteRedundantNodes(NodeBase*& this_pointer, size_t count) {
@@ -171,6 +220,10 @@ void List<T, Allocator>::DeleteRedundantNodes(NodeBase*& this_pointer, size_t co
 /**
  * Moves other into this. After usage other is an empty working list, if allocator is fine after moving. Otherwise,
  * other is not valid.
+ *
+ * @tparam T Type of elements in container
+ * @tparam Allocator Allocator type
+ * @param other List to be moved from
  */
 template <typename T, typename Allocator>
 void List<T, Allocator>::MoveFromOther(List&& other) noexcept(std::is_nothrow_move_assignable_v<NodeAllocator>) {
@@ -194,36 +247,57 @@ void List<T, Allocator>::MoveFromOther(List&& other) noexcept(std::is_nothrow_mo
   }
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
-bool List<T, Allocator>::empty() const {
+bool List<T, Allocator>::empty() const noexcept {
   return length_ == 0;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
-size_t List<T, Allocator>::size() const {
+size_t List<T, Allocator>::size() const noexcept {
   return length_;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
-const T& List<T, Allocator>::front() const {
+const T& List<T, Allocator>::front() const noexcept {
   return AsNode(end_.next)->value;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
-const T& List<T, Allocator>::back() const {
+const T& List<T, Allocator>::back() const noexcept {
   return AsNode(end_.prev)->value;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
-T& List<T, Allocator>::front() {
+T& List<T, Allocator>::front() noexcept {
   return AsNode(end_.next)->value;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
-T& List<T, Allocator>::back() {
+T& List<T, Allocator>::back() noexcept {
   return AsNode(end_.prev)->value;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 void List<T, Allocator>::clear() noexcept {
   Node* current_node = AsNode(end_.next);
@@ -254,6 +328,9 @@ void List<T, Allocator>::InsertToEmpty(Args_t&& ...args) {
   end_.prev->prev = &end_;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 template <typename... Args_t>
 void List<T, Allocator>::emplace_back(Args_t&& ...args) {
@@ -270,6 +347,9 @@ void List<T, Allocator>::emplace_back(Args_t&& ...args) {
   length_++;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 template <typename... Args_t>
 void List<T, Allocator>::emplace_front(Args_t&& ...args) {
@@ -286,8 +366,11 @@ void List<T, Allocator>::emplace_front(Args_t&& ...args) {
   length_++;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
-void List<T, Allocator>::pop_front() {
+void List<T, Allocator>::pop_front() noexcept {
   if (length_ == 1) {
     clear();
   } else {
@@ -300,8 +383,11 @@ void List<T, Allocator>::pop_front() {
   }
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
-void List<T, Allocator>::pop_back() {
+void List<T, Allocator>::pop_back() noexcept {
   if (length_ == 1) {
     clear();
   } else {
@@ -314,6 +400,9 @@ void List<T, Allocator>::pop_back() {
   }
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 void List<T, Allocator>::push_front(const T& value) {
   emplace_front(value);
@@ -425,74 +514,113 @@ bool List<T, Allocator>::UnitedIterator<IsConst>::operator!=(const UnitedIterato
 // LIST ITERATORS
 //
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 typename List<T, Allocator>::iterator List<T, Allocator>::begin() {
   auto it = UnitedIterator<false>(end_.next);
   return it;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 typename List<T, Allocator>::iterator List<T, Allocator>::end() {
   auto it = UnitedIterator<false>(&end_);
   return it;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 typename List<T, Allocator>::const_iterator List<T, Allocator>::cbegin() const {
   auto it = UnitedIterator<true>(end_.next);
   return it;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 typename List<T, Allocator>::const_iterator List<T, Allocator>::cend() const {
   auto it = UnitedIterator<true>(const_cast<NodeBase*>(&end_));
   return it;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 typename List<T, Allocator>::const_iterator List<T, Allocator>::begin() const {
   return cbegin();
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 typename List<T, Allocator>::const_iterator List<T, Allocator>::end() const {
   return cend();
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 typename List<T, Allocator>::reverse_iterator List<T, Allocator>::rbegin() {
   auto it = reverse_iterator(end());
   return it;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 typename List<T, Allocator>::reverse_iterator List<T, Allocator>::rend() {
   auto it = reverse_iterator(begin());
   return it;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 typename List<T, Allocator>::const_reverse_iterator List<T, Allocator>::crbegin() const {
   auto it = const_reverse_iterator(cend());
   return it;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 typename List<T, Allocator>::const_reverse_iterator List<T, Allocator>::crend() const {
   auto it = const_reverse_iterator(cbegin());
   return it;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 typename List<T, Allocator>::const_reverse_iterator List<T, Allocator>::rbegin() const {
   return crbegin();
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 typename List<T, Allocator>::const_reverse_iterator List<T, Allocator>::rend() const {
   return crend();
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 template <bool IsConst, typename... Args_t>
 void List<T, Allocator>::emplace(List::UnitedIterator<IsConst> pos, Args_t&& ...args) {
@@ -511,6 +639,9 @@ void List<T, Allocator>::emplace(List::UnitedIterator<IsConst> pos, Args_t&& ...
   }
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 template <bool IsConst>
 typename List<T, Allocator>::template UnitedIterator<IsConst> List<T,
@@ -520,6 +651,9 @@ typename List<T, Allocator>::template UnitedIterator<IsConst> List<T,
   return std::prev(pos);
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 template <bool IsConst>
 typename List<T, Allocator>::template UnitedIterator<IsConst> List<T,
@@ -529,6 +663,9 @@ typename List<T, Allocator>::template UnitedIterator<IsConst> List<T,
   return std::prev(pos);
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 template <bool IsConst>
 typename List<T, Allocator>::template UnitedIterator<IsConst> List<T,
@@ -548,6 +685,9 @@ typename List<T, Allocator>::template UnitedIterator<IsConst> List<T,
   return next_pos;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 template <bool IsConst, bool IsConstOther>
 typename List<T, Allocator>::template UnitedIterator<IsConst> List<T,
@@ -565,6 +705,7 @@ typename List<T, Allocator>::template UnitedIterator<IsConst> List<T,
 
 /**
  * Prints length and values in order they are in list.
+ * For this function to work properly std::cout should be able to print value of type T.
  */
 template <typename T, typename Allocator>
 void List<T, Allocator>::Print() const {
@@ -635,6 +776,9 @@ void List<T, Allocator>::reverse() {
   end_.next = current_pos;
 }
 
+/**
+ * Reference C++17 standard at https://en.cppreference.com/w/cpp/container/list.
+ */
 template <typename T, typename Allocator>
 void List<T, Allocator>::unique() {
   // goes from back to front, leaving only closest to back element in a group of adjacent equal elements

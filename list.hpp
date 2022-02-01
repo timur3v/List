@@ -27,8 +27,6 @@
 // DECLARATIONS
 //
 
-// NODE BASE does not depend on allocator???
-
 template <typename T, typename Allocator = std::allocator<T>>
 class List {
  public:
@@ -49,16 +47,16 @@ class List {
   List& operator=(const List& other);
   List& operator=(List&& other) noexcept(noexcept(MoveFromOther(std::move(other))));
 
-  size_t size() const;
+  size_t size() const noexcept;
 
-  const T& front() const;
-  const T& back() const;
+  const T& front() const noexcept;
+  const T& back() const noexcept;
 
-  T& front();
-  T& back();
+  T& front() noexcept;
+  T& back() noexcept;
 
   void clear() noexcept;
-  bool empty() const;
+  bool empty() const noexcept;
 
   template <typename... Args_t>
   void emplace_back(Args_t&& ...args);
@@ -71,8 +69,8 @@ class List {
   void push_front(const T& value);
   void push_front(T&& value);
 
-  void pop_front();
-  void pop_back();
+  void pop_front() noexcept;
+  void pop_back() noexcept;
 
   void reverse();
   void unique();
@@ -95,7 +93,7 @@ class List {
   void CopyNewNodes(NodeBase*& this_pointer, NodeBase*& other_pointer, const List<T, Allocator>& other);
   void DeleteRedundantNodes(NodeBase*& this_pointer, size_t count);
 
-  static Node* AsNode(NodeBase* node_base); // node's method?
+  static Node* AsNode(NodeBase* node_base);
 
   void CheckStatus();
 
