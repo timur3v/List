@@ -22,6 +22,8 @@
 #pragma once
 
 #include <memory>
+#include <iostream>
+#include <cmath>
 
 //
 // DECLARATIONS
